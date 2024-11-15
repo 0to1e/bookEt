@@ -1,0 +1,132 @@
+
+    User:
+        user_id (PK)
+        name
+        email (Unique)
+        password
+        phone_number
+        role (admin, customer)
+        created_at
+        updated_at
+
+    Movie:
+        movie_id (PK)
+        name
+        genre (enum: Hollywood, Bollywood, Nepali)
+        duration (minutes)
+        release_date
+        rating
+        description
+        created_at
+        updated_at
+
+    Theater:
+        theater_id (PK)
+        name
+        address
+        phone_number
+        created_at
+        updated_at
+
+    Hall (A movie is shown in a specific hall within a theater):
+        hall_id (PK)
+        theater_id (FK)
+        hall_name
+        total_seats
+        created_at
+        updated_at
+
+    Seat (Represents a seat in a hall):
+        seat_id (PK)
+        hall_id (FK)
+        seat_number
+        seat_category (enum: Gold, Silver, Bronze, etc.)
+        price
+        status (Available, Booked, Disabled)
+        created_at
+        updated_at
+
+    Showtime (Represents a specific showtime of a movie in a hall):
+        showtime_id (PK)
+        movie_id (FK)
+        hall_id (FK)
+        start_time
+        end_time
+        created_at
+        updated_at
+
+    Booking (Represents a booking made by a user for a specific showtime):
+        booking_id (PK)
+        user_id (FK)
+        showtime_id (FK)
+        seats_booked (Array/JSON of seat IDs)
+        total_price
+        status (Booked, Cancelled, Completed)
+        payment_status (Pending, Paid)
+        created_at
+        updated_at
+
+    Purchase History (Represents past bookings, useful for showing movie history and ticket download link):
+        purchase_id (PK)
+        user_id (FK)
+        movie_name
+        date
+        time
+        hall_name
+        seats_booked
+        ticket_download_link (can be null if the movie is in the future)
+        created_at
+        updated_at
+
+    Admin Actions:
+        Admin will be responsible for managing hall and seat categories through CMS, but this can be handled via admin functionalities on the back end, and may not need to be represented as a separate entity in the ER diagram.
+
+Relationships:
+
+    A User can have many Bookings, and a Booking is linked to one User.
+    A Movie can have multiple Showtimes, and each Showtime is linked to one Movie.
+    A Showtime occurs in one Hall, and a Hall can have many Showtimes.
+    A Hall contains many Seats, but each Seat belongs to one Hall.
+    A Seat has a status and a category (e.g., Gold, Silver, Bronze).
+    A Booking will contain information about which Seats were selected, and Seats are marked as "Booked" when a Booking is created.
+    A User can have a Purchase History, which contains historical information about previous Bookings and associated Movie details.
+
+ER Diagram Visual Representation:
+User (1) <--> (M) Booking (M) <--> (1) Showtime (M) <--> (1) Movie
+Showtime (M) <--> (1) Hall (1) <--> (M) Seat
+
+    User --< Booking >-- Showtime --< Hall --< Seat
+    User --< Purchase History
+    Movie --< Showtime
+    Hall --< Seat
+
+Additional Considerations / Missed Criteria:
+
+Here are a few additional components that might be necessary for a movie ticketing system, based on typical use cases:
+
+    Payment System:
+        Integrating a payment gateway for the booking of tickets (e.g., Payment, Payment_Transaction, etc.). Each booking would likely be associated with a payment status (e.g., Paid, Pending, Failed).
+
+    Discounts / Coupons:
+        You might want to implement discounts, loyalty programs, or coupons. This would require entities like Discount, Coupon, and possibly a User_Coupon mapping.
+
+    User Preferences:
+        If the system needs to track user preferences (e.g., preferred movie genres, favorite theaters, seat preferences), an additional User_Preferences entity might be required.
+
+    Reviews and Ratings:
+        Allowing users to rate and review movies could be an additional feature. This would require a Review entity linking users and movies, with fields like rating and comments.
+
+    Notifications:
+        An entity for managing user notifications (e.g., reminders for upcoming shows, booking confirmations, etc.) might be needed, depending on your system's design.
+
+    Seat Availability & Dynamic Pricing:
+        If you want to support dynamic pricing based on demand (e.g., seat price changes over time or depending on seat location), this would need a more sophisticated pricing model linked to seat availability.
+
+    Cancellations and Refunds:
+        You’ll need to track cancellations and possibly manage refunds, especially if users can cancel bookings. This may require extra fields in the Booking entity, or even a Cancellation entity.
+
+Final Thoughts:
+
+The ER diagram described above is a high-level overview of your movie ticketing system. Depending on the complexity and additional features (e.g., user preferences, payment, reviews), you may need to extend or modify this design. Always consider scalability, especially if you plan to expand the system with new features down the line.
+
+Would you like a more detailed breakdown of any specific part of the design, or help with the schema implementation?
