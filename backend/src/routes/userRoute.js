@@ -1,30 +1,33 @@
 import express from "express";
 import {
-  registrationValidationRules,
-  handleValidationResult,
   authValidationRules,
-} from "../middleware/user/userValidation.js";
+  handleValidationResult,
+  registrationValidationRules,
+} from "../middleware/auth/validationMiddleware.js";
 import {
-    checkExistingUserCredentials,
-  initializeAuthentication,
-  initializeRegistration,
-} from "../controller/user.js";
-
+  checkExistingAuthCredentials,
+  initAuthentication,
+  initRegistration,
+} from "../controller/authController.js";
 const router = express.Router();
+
+router.get("/test", (request, response) => {
+  return response.status(200).json({ message: "Test successful" });
+});
 
 router.post(
   "/register",
   registrationValidationRules,
   handleValidationResult,
-  initializeRegistration
+  initRegistration
 );
+
 router.post(
   "/login",
   authValidationRules,
   handleValidationResult,
-  initializeAuthentication
+  initAuthentication
 );
 
-router.post("/checkUnique", checkExistingUserCredentials)
-
+router.post("/checkUnique",checkExistingAuthCredentials)
 export default router;

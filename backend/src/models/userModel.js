@@ -1,38 +1,28 @@
 import mongoose from "mongoose";
-import jsonwebtoken from "jsonwebtoken";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import libphonenumber from "libphonenumber-js";
 
-const jwt = jsonwebtoken;
 const userSchema = new mongoose.Schema(
   {
+    full_name: {
+      type: String,
+      required: true,
+    },
     user_name: {
       type: String,
       required: true,
       unique: true,
     },
-
-    full_name: {
-      type: String,
-      required: true,
-    },
     email: {
       type: String,
       required: true,
       unique: true,
-      match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"],
     },
-    phoneNumber: {
+    phone_number: {
       type: String,
       required: true,
-      //   validate: {
-      //     validator(value) {
-      //       const phoneNumber = libphonenumber.parsePhoneNumber(value, "US"); // Default to US country code or customize
-      //       return phoneNumber.isValid();
-      //     },
-      //     message: "Please enter a valid phone number",
-      //   },
+      unique: true,
     },
     password: {
       type: String,
@@ -40,26 +30,18 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["USER", "ADMIN", "MODERATOR"],
+      enum: ["ADMIN", "MODERATOR", "EDITOR", "USER"],
       default: "USER",
     },
-    reset_password_token: {
-      type: String,
-      default: null,
-    },
-    reset_password_expiry: {
-      type: Date,
-      default: null,
-    },
+    password_reset_Token: { type: String, default: null },
+    password_reset_expiry: { type: Date, default: null },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
-    return next();
+    next();
   }
   this.password = await bcrypt.hash(this.password, 10);
   next();
@@ -70,32 +52,23 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
 };
 
 userSchema.methods.generateJWTToken = async function () {
-  return jwt.sign({ _id: this._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_SECRET_EXPIRY,
+  return jwt.sign({ id: this._id }, process.env.JWT_ACCESS_SECRET, {
+    expiresIn: process.env.JWT_ACCESS_EXPIRY,
   });
 };
 
-// Method to generate a refresh token
-userSchema.methods.generateRefreshToken = async function () {
-  return jwt.sign({ _id: this._id }, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: process.env.JWT_REFRESH_EXPIRY,
-  });
-};
-
-userSchema.methods.generateResetToken = async function () {
+userSchema.methods.generateRecoveryToken = async function () {
   const resetToken = crypto.randomBytes(20).toString("hex");
 
-  this.reset_password_token = crypto
+  this.password_reset_Token = crypto
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
-  this.reset_password_expiry = Date.now() + 15 * 60 * 1000;
 
+  this.password_reset_expiry = Date.now() + 15 * 60 * 1000;
   return resetToken;
 };
 
-userSchema.index({ email: 1 });
-userSchema.index({ user_name: 1 });
-userSchema.index({ phoneNumber: 1 });
+const User = mongoose.model("users", userSchema);
 
-export const User = mongoose.model("user", userSchema);
+export default User;

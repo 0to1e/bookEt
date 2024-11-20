@@ -1,32 +1,46 @@
 import { validationResult, body } from "express-validator";
+import { isValidPhoneNumber } from "libphonenumber-js";
 
 export const registrationValidationRules = [
   body("full_name")
     .trim()
     .escape()
     .notEmpty()
-    .withMessage("Full name is required."),
+    .withMessage("Full name is required"),
 
   body("user_name")
     .trim()
     .escape()
     .notEmpty()
     .withMessage("Username is required")
-    .matches(/^[^@]+$/, "i") // Ensures username does not contain '@'
-    .withMessage("Username cannot contain '@'"),
+    .matches(/^[^@]+$/, "i")
+    .withMessage("Username cannot contain the '@' character"),
 
   body("email")
     .trim()
     .escape()
     .notEmpty()
+    .withMessage("Email is required")
     .isEmail()
-    .withMessage("Invalid Email Format"),
+    .withMessage("Invalid email format"),
+
+  body("phone_number")
+    .trim()
+    .escape()
+    .notEmpty()
+    .withMessage("Phone number is required")
+    .custom((value) => {
+      if (!isValidPhoneNumber(value, "NP")) {
+        throw new Error("Invalid Nepal phone number.");
+      }
+      return true;
+    }),
 
   body("password")
     .trim()
     .escape()
     .notEmpty()
-    .withMessage("Password is required.")
+    .withMessage("Password is required")
     .matches(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{10,}$/,
       "i"
@@ -41,7 +55,7 @@ export const authValidationRules = [
     .trim()
     .escape()
     .notEmpty()
-    .withMessage("username/email is required")
+    .withMessage("Username/Email is required")
     .custom((value) => {
       if (!value.includes("@")) {
         return true; // Treat it as a username
@@ -58,8 +72,7 @@ export const authValidationRules = [
     .notEmpty()
     .withMessage("Password is required"),
 ];
-
-export const handleValidationResult = (request, response, next) => {
+export function handleValidationResult(request, response, next) {
   const errors = validationResult(request);
 
   if (!errors.isEmpty()) {
@@ -69,4 +82,4 @@ export const handleValidationResult = (request, response, next) => {
     return response.status(400).json({ errors: formattedErrors });
   }
   next();
-};
+}
