@@ -12,6 +12,11 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+
+    full_name: {
+      type: String,
+      required: true,
+    },
     email: {
       type: String,
       required: true,
@@ -38,11 +43,11 @@ const userSchema = new mongoose.Schema(
       enum: ["USER", "ADMIN", "MODERATOR"],
       default: "USER",
     },
-    resetPasswordToken: {
+    reset_password_token: {
       type: String,
       default: null,
     },
-    resetPasswordExpiry: {
+    reset_password_expiry: {
       type: Date,
       default: null,
     },
@@ -73,18 +78,18 @@ userSchema.methods.generateJWTToken = async function () {
 // Method to generate a refresh token
 userSchema.methods.generateRefreshToken = async function () {
   return jwt.sign({ _id: this._id }, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: process.env.JWT_REFRESH_EXPIRY, // Default to 7 days for refresh token
+    expiresIn: process.env.JWT_REFRESH_EXPIRY,
   });
 };
 
 userSchema.methods.generateResetToken = async function () {
   const resetToken = crypto.randomBytes(20).toString("hex");
 
-  this.resetPasswordToken = crypto
+  this.reset_password_token = crypto
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
-  this.resetPasswordExpiry = Date.now() + 15 * 60 * 1000;
+  this.reset_password_expiry = Date.now() + 15 * 60 * 1000;
 
   return resetToken;
 };

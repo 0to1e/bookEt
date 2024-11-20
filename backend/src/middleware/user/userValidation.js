@@ -1,0 +1,72 @@
+import { validationResult, body } from "express-validator";
+
+export const registrationValidationRules = [
+  body("full_name")
+    .trim()
+    .escape()
+    .notEmpty()
+    .withMessage("Full name is required."),
+
+  body("user_name")
+    .trim()
+    .escape()
+    .notEmpty()
+    .withMessage("Username is required")
+    .matches(/^[^@]+$/, "i") // Ensures username does not contain '@'
+    .withMessage("Username cannot contain '@'"),
+
+  body("email")
+    .trim()
+    .escape()
+    .notEmpty()
+    .isEmail()
+    .withMessage("Invalid Email Format"),
+
+  body("password")
+    .trim()
+    .escape()
+    .notEmpty()
+    .withMessage("Password is required.")
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{10,}$/,
+      "i"
+    )
+    .withMessage(
+      "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character."
+    ),
+];
+
+export const authValidationRules = [
+  body("user_name")
+    .trim()
+    .escape()
+    .notEmpty()
+    .withMessage("username/email is required")
+    .custom((value) => {
+      if (!value.includes("@")) {
+        return true; // Treat it as a username
+      }
+      if (!/\S+@\S+\.\S+/.test(value)) {
+        throw new Error("Invalid email format");
+      }
+      return true; // Treat it as a valid email
+    }),
+
+  body("password")
+    .trim()
+    .escape()
+    .notEmpty()
+    .withMessage("Password is required"),
+];
+
+export const handleValidationResult = (request, response, next) => {
+  const errors = validationResult(request);
+
+  if (!errors.isEmpty()) {
+    const formattedErrors = errors
+      .array()
+      .map((error) => ({ field: error.path, message: error.msg }));
+    return response.status(400).json({ errors: formattedErrors });
+  }
+  next();
+};
