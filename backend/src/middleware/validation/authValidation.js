@@ -1,14 +1,16 @@
-import { validationResult, body } from "express-validator";
+import { body } from "express-validator";
 import { isValidPhoneNumber } from "libphonenumber-js";
 
 export const registrationValidationRules = [
   body("full_name")
+    .isString()
     .trim()
     .escape()
     .notEmpty()
     .withMessage("Full name is required"),
 
   body("user_name")
+    .isString()
     .trim()
     .escape()
     .notEmpty()
@@ -58,7 +60,7 @@ export const authValidationRules = [
     .withMessage("Username/Email is required")
     .custom((value) => {
       if (!value.includes("@")) {
-        return true; // Treat it as a username
+        return true;
       }
       if (!/\S+@\S+\.\S+/.test(value)) {
         throw new Error("Invalid email format");
@@ -67,19 +69,10 @@ export const authValidationRules = [
     }),
 
   body("password")
+    .isString()
     .trim()
     .escape()
     .notEmpty()
     .withMessage("Password is required"),
 ];
-export function handleValidationResult(request, response, next) {
-  const errors = validationResult(request);
 
-  if (!errors.isEmpty()) {
-    const formattedErrors = errors
-      .array()
-      .map((error) => ({ field: error.path, message: error.msg }));
-    return response.status(400).json({ errors: formattedErrors });
-  }
-  next();
-}

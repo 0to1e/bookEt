@@ -1,0 +1,169 @@
+
+users[icon:user, color:blue]{
+    id string pk
+    full_name string
+    user_name string uk
+    email string uk
+    password string
+    user_role enum (admin,super,user)
+    last_login datestamp
+    reset_expiry time
+    reset_token string
+    phoneNumber string uk
+    profileImage string
+}
+
+movie[icon:image, color:purple]{
+    id string pk
+    name string uk
+    category enum (Nepali,Hollywood,Bollywood)
+    description string uk
+    releaseDate date
+    duration int
+    language string
+    posterUrl string
+    trailerUrl string
+}
+
+distributors[icon:money, color:pink]{
+  id string pk
+  name string uk
+  location string
+  contact object
+  commissionRate float
+}
+
+theatres[icon:building, color: grey]{
+    id string pk
+    name string uk
+    location string
+    contact object
+    hallIds dict
+    commissionRate float
+}
+
+
+halls [icon:square, color:orange]{
+  id string uk
+  name string 
+  theatreId string fk
+  totalSeats int
+  isUsed boolean
+}
+
+
+screenings[icon:video, color:red]{
+  id string pk
+  movieId string fk
+  theatreId string fk
+  distributorId string fk
+  hallId string fk
+  date date
+  time time
+  purchasedSeats int
+  status enum [active, inactive, cancelled]
+  cancellationReason string
+}
+
+
+
+ticket_purchased[icon:ticket, color:red]{
+  id string pk
+  userId string uk
+  movieId string fk
+  theatreId string fk
+  distributorId string fk
+  screeningId string fk
+  seats dict
+  price float
+  checkedIn boolean
+  paymentId string fk
+}
+
+tickets_pending[icon:ticket, color:yellow]{
+  id string pk
+  userId string uk
+  movieId string fk
+  theatreId string fk
+  distributorId string fk
+  screeningId string fk
+  price float
+}
+
+tickets_active[icon:ticket, color:green]{
+  id string pk
+  movieId string fk
+  theatreId string fk
+  distributorId string fk
+  screeningId string fk
+  seatsAvailable dict
+}
+
+tickets_archive[icon:library, color:black]{
+  id string pk
+  userId string
+  movies object[]
+}
+
+payments[icon:bank, color:crimson]{
+  id string pk
+  modeOfPayment enum[bank, cash, esewa, khalti]
+  userId string fk
+  screeningId string fk
+  date date
+  time time
+  amount float
+  refundState enum[null, init, pending,successful, refunded]
+  refundReason string
+}
+
+
+
+screenings.movieId > movie.id
+screenings.theatreId > theatres.id
+screenings.distributorId > distributors.id
+screenings.hallId - halls.id
+
+ticket_purchased.userId > users.id
+ticket_purchased.movieId > movie.id
+ticket_purchased.theatreId >theatres.id
+ticket_purchased.distributorId >distributors.id
+ticket_purchased.screeningId > screenings.id
+ticket_purchased.paymentId - payments.id
+
+tickets_active.movieId > movie.id
+tickets_active.theatreId >theatres.id
+tickets_active.distributorId >distributors.id
+tickets_active.screeningId > screenings.id
+
+tickets_pending.movieId > movie.id
+tickets_pending.theatreId >theatres.id
+tickets_pending.distributorId >distributors.id
+tickets_pending.screeningId > screenings.id
+
+halls.theatreId > theatres.id
+
+payments.userId> users.id
+payments.screeningId >screenings.id
+
+
+
+
+// tickets_archive.movies object{
+//   movieName string uk
+//   distributorName string
+//   theatreName string
+//   hallName string
+//   date date
+//   time time
+//   seats dict
+//   price float
+//   paymentMode string
+// }
+
+
+// contacts{
+//   id string pk
+//   phoneNum dict uk
+//   email dict uk
+// }

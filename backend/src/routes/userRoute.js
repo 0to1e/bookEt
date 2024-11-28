@@ -1,9 +1,9 @@
 import express from "express";
 import {
   authValidationRules,
-  handleValidationResult,
   registrationValidationRules,
-} from "../middleware/auth/validationMiddleware.js";
+} from "../middleware/validation/authValidation.js";
+import {prettyValidationResult} from '../utils/prettyValidationResult.js'
 import {
   checkExistingAuthCredentials,
   initAuthentication,
@@ -18,16 +18,16 @@ router.get("/test", (request, response) => {
 router.post(
   "/register",
   registrationValidationRules,
-  handleValidationResult,
+  prettyValidationResult,
   initRegistration
 );
 
 router.post(
   "/login",
   authValidationRules,
-  handleValidationResult,
+  prettyValidationResult,
   initAuthentication
 );
 
-router.post("/checkUnique",checkExistingAuthCredentials)
+router.post("/checkUnique", checkExistingAuthCredentials);
 export default router;
