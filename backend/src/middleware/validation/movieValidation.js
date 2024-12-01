@@ -5,6 +5,8 @@ export const validationRules = [
     .isString()
     .trim()
     .escape()
+    .isLength({ min: 1, max: 100 })
+    .withMessage("Name must be between 1 to 100 characters")
     .notEmpty()
     .withMessage("Movie name is required."),
   body("category")

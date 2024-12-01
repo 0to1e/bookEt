@@ -1,55 +1,66 @@
 import { body } from "express-validator";
-
+import { isValidPhoneNumber } from "libphonenumber-js";
 export const validationRules = [
   body("name")
     .isString()
     .trim()
     .escape()
     .notEmpty()
-    .withMessage("Distributor's name is requestuired."),
-  body("Location")
+    .withMessage("Distributor's name is required."),
+  body("locations")
     .isString()
     .trim()
     .escape()
     .notEmpty()
-    .withMessage("Distributor's location is requestuired."),
-  body("description")
-    .isString()
-    .trim()
-    .escape()
-    .notEmpty()
-    .withMessage("Movie's description is requestuired."),
-  // body("contact.phoneNum")
-  //   .isArray()
-  //   .withMessage("Phone numbers must be an array")
-  //   .custom((value) => {
-  //     // Check each phone number object
-  //     value.forEach((phone) => {
-  //       if (!phone.type || !["mobile", "landline"].includes(phone.type)) {
-  //         throw new Error('Phone type must be "mobile" or "landline"');
-  //       }
-  //       if (!phone.number || !/^\d{10}$/.test(phone.number)) {
-  //         throw new Error("Phone number must be 10 digits");
-  //       }
-  //     });
-  //     return true;
-  //   }),
+    .withMessage("Distributor's location is required."),
+  body("contact.phoneNum")
+    .isArray()
+    .withMessage("Phone numbers must be an array")
+    .custom((values) => {      
+      values.forEach((value) => {
+        if (!isValidPhoneNumber(value.number, "NP")) {
+          throw new Error("Invalid Phone number ");
+        }
+      });
+      return true;
+    }),
 
-  // body("contact.email")
-  //   .isArray()
-  //   .withMessage("Emails must be an array")
-  //   .custom((value) => {
-  //     // Check each email object
-  //     value.forEach((email) => {
-  //       if (!email.type || !["personal", "work"].includes(email.type)) {
-  //         throw new Error('Email type must be "personal" or "work"');
-  //       }
-  //       if (!email.address || !/\S+@\S+\.\S+/.test(email.address)) {
-  //         throw new Error("Invalid email address");
-  //       }
-  //     });
-  //     return true;
-  //   }).
+  body("contact.email")
+    .isArray({ min: 1 })
+    .withMessage("At least one phone number is required.")
+    .custom((value) => {
+      value.forEach((email) => {
+        if (!/\S+@\S+\.\S+/.test(email.address)) {
+          throw new Error("Invalid email address format");
+        }
+      });
+      return true;
+    }),
+  body("distributionRights")
+    .optional()
+    .isArray()
+    .custom((rights) => {
+      rights.forEach((right, index) => {
+        if (!right.movieId) {
+          throw new Error(
+            `Distribution right at index ${index} must have a movieId`
+          );
+        }
+
+        if (right.validFrom && right.validUntil) {
+          const from = new Date(right.validFrom);
+          const until = new Date(right.validUntil);
+
+          if (from > until) {
+            throw new Error(
+              `Invalid date range for distribution right at index ${index}`
+            );
+          }
+        }
+      });
+
+      return true;
+    }),
   body("commission_rate")
     .isFloat()
     .withMessage("Invalid data type. Float required")

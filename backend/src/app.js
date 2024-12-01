@@ -21,6 +21,8 @@ app.use(cors(corsOptions));
 
 import userRoute from "./routes/userRoute.js";
 import moviesRoute from "./routes/movieRoute.js";
+import distributorRoute from "./routes/distributorsRoute.js";
 
 app.use(`${apiVersion}/auth`, userRoute);
 app.use(`${apiVersion}/movie`, moviesRoute);
+app.use(`${apiVersion}/distributor`, distributorRoute);
